@@ -1,38 +1,48 @@
 package telran.monitoring.documents;
 
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.TimeZone;
+import java.time.*;
+import java.util.*;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import telran.monitoring.dto.PulseProbe;
 
-@Document(collection = "avg-pulse-values")
-@Data
-@AllArgsConstructor
-
+@Document(collection = "avg-pules-values")
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AvgPulseDoc {
 	long patientId;
 	int value;
 	LocalDateTime dateTime;
-	
 	public static AvgPulseDoc of(PulseProbe pulseProbe) {
-		return new AvgPulseDoc(pulseProbe.patientId(), pulseProbe.value(), toLocalDateTime(pulseProbe.timestamp()));
+		return new AvgPulseDoc(pulseProbe.patientId(),
+				pulseProbe.value(), LocalDateTime.ofInstant(Instant.ofEpochMilli(pulseProbe.timestamp()),
+								ZoneId.systemDefault()));
 	}
-	private static LocalDateTime toLocalDateTime(long timestamp) {
-		
-		return  LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp),
-                TimeZone.getDefault().toZoneId());
+	@Override
+	public int hashCode() {
+		return Objects.hash(patientId, value);
 	}
-	public PulseProbe build() {
-		
-		return new PulseProbe(patientId, value, dateTime.toEpochSecond(ZoneOffset.UTC), 0);
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AvgPulseDoc other = (AvgPulseDoc) obj;
+		return patientId == other.patientId && value == other.value;
+	}
+	public long getPatientId() {
+		return patientId;
+	}
+	public LocalDateTime getDateTime() {
+		return dateTime;
+	}
+	public int getValue() {
+		return value;
 	}
 	
 }

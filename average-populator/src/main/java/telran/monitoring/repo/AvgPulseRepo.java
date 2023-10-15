@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import telran.monitoring.documents.AvgPulseDoc;
 
-public interface AvgPulseRepo extends MongoRepository<AvgPulseDoc, String> {
-	
+public interface AvgPulseRepo extends MongoRepository<AvgPulseDoc, ObjectId> {
+
 }

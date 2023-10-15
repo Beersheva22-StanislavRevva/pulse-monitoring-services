@@ -1,9 +1,9 @@
+
 package telran.monitoring;
-
 import static org.junit.jupiter.api.Assertions.*;
-
+import java.util.Arrays;
 import java.util.List;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,36 +15,36 @@ import org.springframework.messaging.support.GenericMessage;
 import telran.monitoring.documents.AvgPulseDoc;
 import telran.monitoring.dto.PulseProbe;
 import telran.monitoring.repo.AvgPulseRepo;
-import telran.monitoring.service.AvgPopulatorService;
-
-
 @SpringBootTest
 @Import(TestChannelBinderConfiguration.class)
-public class AvgPopulatorTest {
-	static final long PATIENT_ID_NO_REDIS = 123L;
-	static final long PATIENT_ID_NO_AVG = 124l;
-	static final long PATIENT_ID_AVG = 125L;
-	static final int VALUE1 = 100;
-	static final int VALUE2 = 120;
+class AvgPulsePopulatorTest {
+	private static final long PATIENT_ID1 = 123;
+	private static final int VALUE1 = 70;
+	private static final long PATIENT_ID2 = 124;
+	private static final int VALUE2 = 75;
 	@Autowired
-	InputDestination producer;
+InputDestination producer;
 	@Autowired
-	AvgPopulatorService avgPopulatorService;
-	@Autowired
-	AvgPulseRepo avgPulseRepo;
-	PulseProbe probeNoRedis = new PulseProbe(PATIENT_ID_NO_REDIS, VALUE1, 0, 0);
-	PulseProbe probeNoAvg = new PulseProbe(PATIENT_ID_NO_AVG, VALUE1, 0, 0);
-	PulseProbe probeAvg = new PulseProbe(PATIENT_ID_AVG, VALUE2, 0, 0);
-	String consumerBindingName = "pulseProbeConsumer-in-0";
-	
-	
+	AvgPulseRepo pulseRepository;
+	PulseProbe pulseProbe1 = new PulseProbe(PATIENT_ID1, 0, 0, VALUE1);
+	PulseProbe pulseProbe2 = new PulseProbe(PATIENT_ID2, 0, 0, VALUE2);
+	AvgPulseDoc doc1 = AvgPulseDoc.of(pulseProbe1);
+	AvgPulseDoc doc2 = AvgPulseDoc.of(pulseProbe2);
+	String bindingName = "avgPulseConsumer-in-0";
+	@BeforeAll
+	static void setUpBeforeClass() throws Exception {
+	}
+
 	@Test
-	void AddProbeTest() {
-		producer.send(new GenericMessage<PulseProbe>(probeAvg), consumerBindingName);
-		avgPopulatorService.addProbe(probeAvg);
-		AvgPulseDoc avgPulseDoc = AvgPulseDoc.of(probeAvg);
-		avgPulseRepo.save(avgPulseDoc);
+	void test() {
+		producer.send(new GenericMessage<PulseProbe>(pulseProbe1), bindingName);
+		producer.send(new GenericMessage<PulseProbe>(pulseProbe2), bindingName);
+		List<AvgPulseDoc> documents = pulseRepository.findAll();
+		List<AvgPulseDoc> expected = Arrays.asList(doc1, doc2);
+		assertIterableEquals(expected, documents);
+		
 		
 	}
+	
 
 }
