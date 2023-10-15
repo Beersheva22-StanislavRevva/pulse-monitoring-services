@@ -2,9 +2,11 @@ package telran.monitoring;
 
 import java.util.function.Consumer;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -18,7 +20,8 @@ import telran.monitoring.service.EmailDataProvider;
 @RequiredArgsConstructor
 @Slf4j
 public class JumpsEmailNotifierAppl {
-	final JavaMailSender mailSender;
+	@Autowired
+	JavaMailSender mailSender;
 	final EmailDataProvider dataProvider;
 	@Value("${app.email.service.address:hospitalservice@hospital.com}")
 	private String hospitalServiceMail;
@@ -30,34 +33,36 @@ public class JumpsEmailNotifierAppl {
 		SpringApplication.run(JumpsEmailNotifierAppl.class, args);
 
 	}
+	@Bean
 	Consumer<JumpPulse> jumpsConsumer() {
 		return this::jumpProcessing;		
 	}
-	void jumpProcessing(JumpPulse jumpPluse) {
-		log.trace("recieved: {}", jumpPluse);
-		sendMail(jumpPluse);
+	void jumpProcessing(JumpPulse jumpPulse) {
+		log.trace("recieved: {}", jumpPulse);
+		sendMail(jumpPulse);
 	}
-	private void sendMail(JumpPulse jumpPluse) {
-		EmailNotificationData data = dataProvider.getData(jumpPluse.patientId());
+	private void sendMail(JumpPulse jumpPulse) {
+		EmailNotificationData data = dataProvider.getData(jumpPulse.patientId());
 		if (data == null) {
 			log.warn("email data have not been recieved");
-			data = new EmailNotificationData(hospitalServiceMail, hospitalServiceName,
-			"" + jumpPluse.patientId());
+			data = new EmailNotificationData(hospitalServiceMail, hospitalServiceName,""
+			+ jumpPulse.patientId());
 		}
+		log.trace("email data: doctor email: {}, doctor name: {}, patient name: {}", data.doctorMail(), data.doctorName(), data.patientName());
 		SimpleMailMessage smm = new SimpleMailMessage();
 		smm.setTo(data.doctorMail());
-		smm.setSubject(subject + data.patientName());
-		String text = getText(jumpPluse, data); 
+		smm.setSubject(subject + jumpPulse.patientId());
+		String text = getText(jumpPulse, data); 
 		smm.setText(text);
 		mailSender.send(smm);
 		log.trace("sent: {}", text);
 	}
-	private String getText(JumpPulse jumpPluse, EmailNotificationData data) {
+	private String getText(JumpPulse jumpPulse, EmailNotificationData data) {
 		
-		return String.format("Dear % s\nYour patient %s has the pulse jump\n"
-		+ "previous value: %d\n"
-		+ "current value: %d\n", data.doctorName(), data.patientName(),
-			jumpPluse.prevValue(), jumpPluse.currentValue());
+		return String.format("Dear %s\nYour patient %s has the pulse jump\n"
+				+ "previous value: %d\n"
+				+ "current value: %d\n", data.doctorName(), data.patientName(), jumpPulse.prevValue(), jumpPulse.currentValue());
 	}
+	
 
 }
