@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.stream.binder.test.*;
@@ -44,6 +45,10 @@ ResponseEntity<EmailNotificationData> responseAbnormal = new ResponseEntity<>(nu
 InputDestination producer;
 @MockBean
 RestTemplate restTemplate;
+@Value("${app.email.service.address:hospitalservice@hospital.com}")
+private String hospitalServiceMail;
+@Value("${app.email.service.name:Hospital Alert Service}")
+private String hospitalServiceName;
 	@Test
 	void normalFlow() throws Exception {
 		when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(), any(Class.class)))
@@ -56,6 +61,22 @@ RestTemplate restTemplate;
 		assertTrue(message.getSubject().contains("" + PATIENT_ID));
 		String text = message.getContent().toString();
 		assertTrue(text.contains(DOCTOR_NAME));
+		
+		
+	}
+	
+	@Test
+	void abnormalFlow() throws Exception {
+		when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(), any(Class.class)))
+			.thenThrow(new RuntimeException("doctor not found"));
+		producer.send(new GenericMessage<JumpPulse>(new JumpPulse(PATIENT_ID, PREV_VALUE, CURRENT_VALUE)));
+		MimeMessage[] messages = mailExtension.getReceivedMessages();
+		assertTrue(messages.length > 0);
+		MimeMessage message = messages[0];
+		assertEquals(hospitalServiceMail, message.getAllRecipients()[0].toString());
+		assertTrue(message.getSubject().contains("" + PATIENT_ID));
+		String text = message.getContent().toString();
+		assertTrue(text.contains(hospitalServiceName));
 		
 		
 	}

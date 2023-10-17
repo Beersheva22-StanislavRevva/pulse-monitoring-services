@@ -31,7 +31,6 @@ public class JumpsEmailNotifierAppl {
 	private String subject;
 	public static void main(String[] args) {
 		SpringApplication.run(JumpsEmailNotifierAppl.class, args);
-
 	}
 	@Bean
 	Consumer<JumpPulse> jumpsConsumer() {
@@ -63,6 +62,5 @@ public class JumpsEmailNotifierAppl {
 				+ "previous value: %d\n"
 				+ "current value: %d\n", data.doctorName(), data.patientName(), jumpPulse.prevValue(), jumpPulse.currentValue());
 	}
-	
 
 }
