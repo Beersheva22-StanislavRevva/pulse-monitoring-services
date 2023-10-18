@@ -1,40 +1,31 @@
 package telran.monitoring.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import telran.monitoring.dto.DoctorDto;
-import telran.monitoring.repo.DoctorRepo;
-import telran.monitoring.repo.PatientRepo;
-import telran.monitoring.repo.VisitRepo;
-import telran.monitoring.service.EmailDataProviderService;
-
-@RestController
+import telran.monitoring.dto.EmailNotificationData;
+import telran.monitoring.entities.*;
+import telran.monitoring.repo.*;
+import telran.monitoring.service.*;
 @RequiredArgsConstructor
-@RequestMapping("doctor")
-@Slf4j
-
+@RestController
 
 public class EmailDataProviderController {
-	
-	final EmailDataProviderService emailDataProviderService;
-	
+	final EmailDataProviderService service;
 	@GetMapping("data/{patientId}")
 	ResponseEntity<?> getData(@PathVariable long patientId) {
+		ResponseEntity<?> res = null;
 		try {
-		String doctorMail = emailDataProviderService.findDoctorMailByPatientId(patientId);
-		return ResponseEntity.ok(doctorMail);
+			EmailNotificationData data = service.getEmailData(patientId);
+			res =  new ResponseEntity<EmailNotificationData>(data, HttpStatus.OK);
 		} catch (Exception e) {
-		log.error("couldn't find doctor by patient id - {}", e.getMessage());
-		return 	ResponseEntity.badRequest().body(e.getMessage());
+			res = new ResponseEntity<String>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
+		return res;
+		
+		
 	}
-
 }
