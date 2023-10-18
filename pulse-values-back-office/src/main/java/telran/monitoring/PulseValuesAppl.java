@@ -6,10 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"telran"})
-public class PulseValuesBackOfficeAppl {
+public class PulseValuesAppl {
 
 	public static void main(String[] args) {
-		SpringApplication.run(PulseValuesBackOfficeAppl.class, args);
+		SpringApplication.run(PulseValuesAppl.class, args);
 
 	}
 
