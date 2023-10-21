@@ -2,6 +2,7 @@ package telran.monitoring.entities;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 @Entity
 @Table(name="visits", indexes = {@Index(columnList = "patient_id")})

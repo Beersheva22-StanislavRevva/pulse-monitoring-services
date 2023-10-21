@@ -16,12 +16,13 @@ import telran.monitoring.dto.EmailNotificationData;
 import telran.monitoring.dto.JumpPulse;
 import telran.monitoring.service.EmailDataProvider;
 
-@SpringBootApplication	
+@SpringBootApplication
 @RequiredArgsConstructor
 @Slf4j
 public class JumpsEmailNotifierAppl {
 	@Autowired
 	JavaMailSender mailSender;
+	
 	final EmailDataProvider dataProvider;
 	@Value("${app.email.service.address:hospitalservice@hospital.com}")
 	private String hospitalServiceMail;
@@ -31,36 +32,40 @@ public class JumpsEmailNotifierAppl {
 	private String subject;
 	public static void main(String[] args) {
 		SpringApplication.run(JumpsEmailNotifierAppl.class, args);
+
 	}
 	@Bean
 	Consumer<JumpPulse> jumpsConsumer() {
-		return this::jumpProcessing;		
+		return this::jumpProcessing;
 	}
 	void jumpProcessing(JumpPulse jumpPulse) {
-		log.trace("recieved: {}", jumpPulse);
+		log.trace("received: {}", jumpPulse);
 		sendMail(jumpPulse);
 	}
 	private void sendMail(JumpPulse jumpPulse) {
+	
 		EmailNotificationData data = dataProvider.getData(jumpPulse.patientId());
 		if (data == null) {
-			log.warn("email data have not been recieved");
-			data = new EmailNotificationData(hospitalServiceMail, hospitalServiceName,""
-			+ jumpPulse.patientId());
+			log.warn("email data have not been received");
+			data = new EmailNotificationData(hospitalServiceMail, hospitalServiceName, "" +
+		jumpPulse.patientId());
 		}
 		log.trace("email data: doctor email: {}, doctor name: {}, patient name: {}", data.doctorMail(), data.doctorName(), data.patientName());
 		SimpleMailMessage smm = new SimpleMailMessage();
 		smm.setTo(data.doctorMail());
 		smm.setSubject(subject + jumpPulse.patientId());
-		String text = getText(jumpPulse, data); 
+		String text = getText(jumpPulse, data);
 		smm.setText(text);
 		mailSender.send(smm);
 		log.trace("sent: {}", text);
+		
 	}
 	private String getText(JumpPulse jumpPulse, EmailNotificationData data) {
 		
 		return String.format("Dear %s\nYour patient %s has the pulse jump\n"
 				+ "previous value: %d\n"
-				+ "current value: %d\n", data.doctorName(), data.patientName(), jumpPulse.prevValue(), jumpPulse.currentValue());
+				+ "current value: %d\n", data.doctorName(), data.patientName(),
+				jumpPulse.prevValue(), jumpPulse.currentValue());
 	}
 
 }
