@@ -12,7 +12,7 @@ import telran.monitoring.repo.LastPulseValueRepo;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class JumpsDetoctorServiceImpl implements JumpsDetectorService {
+public class JumpsDetectorServiceImpl implements JumpsDetectorService {
 	final LastPulseValueRepo lastValueRepo;
 	@Value("${app.jumps.threshold:0.3}")
 	double jumpThreshold;
@@ -29,6 +29,7 @@ public class JumpsDetoctorServiceImpl implements JumpsDetectorService {
 			log.trace("record in REDDIS exists but no jump");
 		}
 		lastValue = new LastPulseValue(pulseProbe.patientId(), pulseProbe.value());
+		lastValueRepo.save(lastValue);
 		return res;
 	}
 

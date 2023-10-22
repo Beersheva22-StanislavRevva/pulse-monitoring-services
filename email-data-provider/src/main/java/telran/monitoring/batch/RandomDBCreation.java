@@ -63,14 +63,14 @@ public class RandomDBCreation {
 	 }
 	Visit getVisit(int id) {
 		LocalDate date = getRandomDate();
-		Doctor randomDoctor = doctorRepo.findById((long)getRandomNumber(1,(int)doctorRepo.count())).get();
+		Doctor randomDoctor = doctorRepo.findById((long)getRandomNumber(1, 1 + (int)doctorRepo.count())).get();
 		Patient randomPatient = patientRepo.findById((long)getRandomNumber(1000, 1000 + (int)patientRepo.count())).get();
 		Visit res = new Visit(randomDoctor, randomPatient, date);
 		return res;
 	 }
 	private LocalDate getRandomDate() {
 		
-		int year = getRandomNumber(2023, 2024);
+		int year =  LocalDate.now().getYear();
 		int month = getRandomNumber(1,13);
 		int day = getRandomNumber(1, 29);
 		return LocalDate.of(year , month , day );
