@@ -16,27 +16,31 @@ public class JumpsDetectorServiceImpl implements JumpsDetectorService {
 	final LastPulseValueRepo lastValueRepo;
 	@Value("${app.jumps.threshold:0.3}")
 	double jumpThreshold;
+	@Value(value = "${app.jumps.period:300000}")
+	private long jumpPeriod;
 
 	@Override
 	public JumpPulse processPulseProbe(PulseProbe pulseProbe) {
 		LastPulseValue lastValue = lastValueRepo.findById(pulseProbe.patientId()).orElse(null);
 		JumpPulse res = null;
-		if(lastValue != null && isJump(pulseProbe.value(), lastValue.getValue())) {
+		if(lastValue != null && isJump(pulseProbe.value(), lastValue)) {
 			res = new JumpPulse(pulseProbe.patientId(), lastValue.getValue(), pulseProbe.value());
 		} else if(lastValue == null) {
 			log.debug("no record in REDIS");
 		} else {
 			log.trace("record in REDDIS exists but no jump");
 		}
-		lastValue = new LastPulseValue(pulseProbe.patientId(), pulseProbe.value());
+		lastValue = new LastPulseValue(pulseProbe.patientId(), pulseProbe.value(), System.currentTimeMillis());
 		lastValueRepo.save(lastValue);
 		return res;
 	}
 
-	private boolean isJump(int currentValue, int prevValue) {
+	private boolean isJump(int currentValue, LastPulseValue lastValue) {
+		int prevValue = lastValue.getValue();
 		int delta = Math.abs(currentValue - prevValue);
+		long timestamp = lastValue.getTimestamp();
 		
-		return prevValue * jumpThreshold <= delta;
+		return System.currentTimeMillis() - timestamp <= jumpPeriod && prevValue * jumpThreshold <= delta;
 	}
 
 }

@@ -2,6 +2,7 @@ package telran.monitoring.documents;
 
 import java.time.*;
 import java.util.*;
+import telran.monitoring.api.*;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import telran.monitoring.dto.PulseProbe;
 
-@Document(collection = "avg-pules-values")
+@Document(collection = ApiConstants.avgValuesCollection)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AvgPulseDoc {
 	long patientId;
