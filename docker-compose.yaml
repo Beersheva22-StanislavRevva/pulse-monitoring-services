@@ -51,9 +51,6 @@ services:
                memory: 200M
       environment:
            - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      ports:
-         #FIXME
-         - 8080:8080
    jumps-detector:
       build:
          jumps-detector
@@ -97,6 +94,21 @@ services:
       environment:
            - MONGO_PASSWORD=${MONGO_PASSWORD}
            - TZ=GMT+3
+   gateway:
+      build:
+         gateway
+      deploy:
+         resources:
+            limits:
+               cpus: '0.5'
+               memory: 300M
+            reservations:
+               cpus: '0.3'
+               memory: 200M
+      environment:
+           - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+           - JWT_SECRET=${JWT_SECRET}
+           - TZ=GMT+3
       ports:
-            #FIXME
-           - 9090:9090
+            - 9292:9292
+  
